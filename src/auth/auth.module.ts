@@ -21,8 +21,8 @@ import { FirebaseAdmin } from "./firebase.setup";
     }),
   ],
 
-  providers: [AuthService, FirebaseAdmin],
-  exports: [AuthService, FirebaseAdmin],
+  providers: [AuthService],
+  exports: [AuthService],
 })
 export class AuthModule {
 }
