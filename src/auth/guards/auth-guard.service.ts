@@ -4,32 +4,29 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Request } from 'express';
-import { AuthService } from '../auth.service';
+import { Reflector } from '@nestjs/core';
+import app from 'firebase-admin';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {
-  }
+  constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = this.getTokenFromHeader(request);
 
-    if (!token) {
-      throw new UnauthorizedException();
+    const idToken = request?.headers?.authorization.split(' ')[1];
+    const permissions = this.reflector.get<string[]>(
+      'permissions',
+      context.getHandler(),
+    );
+
+    const claims = await app.auth().verifyIdToken(idToken);
+
+    if (claims.role === permissions[0]) {
+      request['user'] = claims;
+      return true;
     }
 
-    const payload = await this.authService.verifyToken(token);
-    request['user'] = payload;
-
-    return true;
-  }
-
-  private getTokenFromHeader(request: Request): string | null {
-    const authHeader = request.headers.authorization;
-
-    const token = authHeader ? authHeader.replace('Bearer','') : null;
-    return token.trim();
+    throw new UnauthorizedException();
   }
 }

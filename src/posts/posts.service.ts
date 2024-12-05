@@ -18,9 +18,9 @@ export class PostsService {
   }
 
   async updatePost(param: UpdatePostDto): Promise<boolean> {
-    const { id } = param;
+    const { id, userId } = param;
     delete param.id;
-    const result = await this.postsRepository.update({ id }, param);
+    const result = await this.postsRepository.update({ id, userId }, param);
 
     return !!result.affected;
   }
@@ -33,21 +33,12 @@ export class PostsService {
     });
   }
 
-  async findAllUserPosts(param: GetPostsDto): Promise<PostEntity[]> {
-    return await this.postsRepository.find({
-      where: { userId: param.userId },
-      order: { createdAt: 'DESC' },
-      skip: param.page,
-      take: param.limit,
-    });
-  }
-
-  async findPost(id: string, userId: string): Promise<PostEntity> {
-    return await this.postsRepository.findOneBy({ id, userId });
+  async findPost(id: string): Promise<PostEntity> {
+    return await this.postsRepository.findOneBy({ id});
   }
 
   async deletePost(id: string, userId: string): Promise<boolean> {
-    const result = await this.postsRepository.delete({ id, userId });
+    const result = await this.postsRepository.delete({ id, userId});
 
     return !!result.affected;
   }
